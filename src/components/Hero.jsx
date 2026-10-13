@@ -1,241 +1,99 @@
-import { motion } from "framer-motion";
-import { TypeAnimation } from "react-type-animation";
-import ParticlesBackground from "./ParticlesBackground";
-import profile from "../assets/profile.jpg";
-import MagneticButton from "./MagneticButton";
 import { useRef } from "react";
+import { useReducedMotion } from "framer-motion";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-gsap.registerPlugin(ScrollTrigger);
+import portrait from "../assets/aravindan-suit-portrait.jpg";
+import ParticlesBackground from "./ParticlesBackground";
 
+const titleWords = ["Aravindan", "Y"];
+const careerObjective = "Aspiring Full Stack Developer passionate about building scalable, user-focused applications. I combine modern web technologies with practical problem-solving to transform ideas into impactful digital experiences.";
 
 function Hero() {
-     const heroRef = useRef();
+  const heroRef = useRef(null);
+  const reduceMotion = useReducedMotion();
 
   useGSAP(() => {
-    gsap.to(".hero-content", {
-      scale: 0.75,
-      opacity: 0,
-      y: -100,
+    const hero = heroRef.current;
+    if (!hero || reduceMotion) return undefined;
 
-      scrollTrigger: {
-        trigger: heroRef.current,
-        start: "top top",
-        end: "+=1200",
-        scrub: true,
-      },
+    const intro = gsap.timeline({ defaults: { ease: "power3.out" } });
+    intro
+      .fromTo(".hero-eyebrow", { y: 12, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.42 }, 0.02)
+      .fromTo(".hero-title-char", { yPercent: 110, rotateX: -42, autoAlpha: 0 }, { yPercent: 0, rotateX: 0, autoAlpha: 1, duration: 0.55, stagger: 0.026, ease: "back.out(1.25)" }, 0.08)
+      .fromTo(".hero-role", { y: 12, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.4 }, 0.28)
+      .fromTo(".hero-summary", { y: 12, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.46 }, 0.36)
+      .fromTo(".hero-actions .button", { y: 10, scale: 0.98, autoAlpha: 0 }, { y: 0, scale: 1, autoAlpha: 1, duration: 0.38, stagger: 0.08 }, 0.48)
+      .fromTo(".hero-social-link", { y: 8, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.32, stagger: 0.05 }, 0.67)
+      .fromTo(".hero-portrait-wrap", { y: 18, scale: 0.975, autoAlpha: 0 }, { y: 0, scale: 1, autoAlpha: 1, duration: 0.68, ease: "power2.out" }, 0.16)
+      .fromTo(".scroll-cue", { y: 8, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.32 }, 0.86);
+
+    const media = gsap.matchMedia();
+    media.add("(hover: hover) and (pointer: fine) and (min-width: 900px)", () => {
+      const layers = gsap.utils.toArray("[data-parallax]", hero);
+      const xTo = layers.map((layer) => gsap.quickTo(layer, "x", { duration: 0.8, ease: "power3.out" }));
+      const yTo = layers.map((layer) => gsap.quickTo(layer, "y", { duration: 0.8, ease: "power3.out" }));
+      const onPointerMove = (event) => {
+        const bounds = hero.getBoundingClientRect();
+        const px = (event.clientX - bounds.left) / bounds.width - 0.5;
+        const py = (event.clientY - bounds.top) / bounds.height - 0.5;
+        layers.forEach((layer, index) => {
+          const depth = Number(layer.dataset.parallax) || 1;
+          xTo[index](px * depth);
+          yTo[index](py * depth);
+        });
+      };
+      const onPointerLeave = () => layers.forEach((_, index) => { xTo[index](0); yTo[index](0); });
+      hero.addEventListener("pointermove", onPointerMove, { passive: true });
+      hero.addEventListener("pointerleave", onPointerLeave, { passive: true });
+      return () => {
+        hero.removeEventListener("pointermove", onPointerMove);
+        hero.removeEventListener("pointerleave", onPointerLeave);
+        [...xTo, ...yTo].forEach((tween) => tween.tween?.kill());
+      };
     });
-  });
+
+    return () => media.revert();
+  }, { scope: heroRef, dependencies: [reduceMotion], revertOnUpdate: true });
+
   return (
-    <section
-     ref={heroRef}
-      id="hero"
-      className="relative min-h-screen overflow-hidden bg-[#050816] flex items-center justify-center"
-    >
-        < ParticlesBackground />
-      {/* Background Glow 1 */}
-      <div
-        className="
-          absolute
-          w-[500px]
-          h-[500px]
-          bg-cyan-500/20
-          blur-[150px]
-          rounded-full
-          top-[-100px]
-          left-[-100px]
-        "
-      />
-
-      {/* Background Glow 2 */}
-      <div
-        className="
-          absolute
-          w-[500px]
-          h-[500px]
-          bg-violet-500/20
-          blur-[150px]
-          rounded-full
-          bottom-[-150px]
-          right-[-100px]
-        "
-      />
-
-      {/* Small Floating Dot */}
-      <motion.div
-        animate={{
-          y: [0, -15, 0],
-          scale: [1, 1.2, 1],
-        }}
-        transition={{
-          repeat: Infinity,
-          duration: 4,
-        }}
-        className="
-          absolute
-          top-1/3
-          left-1/2
-          w-3
-          h-3
-          bg-cyan-400
-          rounded-full
-          shadow-[0_0_30px_10px_rgba(34,211,238,0.7)]
-        "
-      />
-
-     
-      {/* Main Content */}
-<div className="hero-content relative z-10 text-center px-6">
-
-  <motion.p
-    initial={{ opacity: 0, y: -30 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 1 }}
-    className="text-cyan-400 tracking-[0.3em] uppercase mb-5"
-  >
-    Digital Cosmos
-  </motion.p>
-
-  {/* Profile Image */}
-  <motion.div
-    initial={{ opacity: 0, scale: 0.8 }}
-    animate={{ opacity: 1, scale: 1 }}
-    transition={{ duration: 1 }}
-    className="flex justify-center mb-8"
-  >
-    <div className="relative">
-
-      {/* Glow */}
-      <div
-        className="
-          absolute
-          inset-0
-          rounded-full
-          bg-cyan-400/30
-          blur-2xl
-          scale-125
-        "
-      />
-
-      <motion.img
-        src={profile}
-        alt="Aravindan"
-        animate={{
-          y: [0, -10, 0],
-        }}
-        transition={{
-          repeat: Infinity,
-          duration: 4,
-        }}
-        className="
-          relative
-          w-40
-          h-40
-          md:w-52
-          md:h-52
-          rounded-full
-          object-cover
-          border-4
-          border-cyan-400/40
-          shadow-[0_0_40px_rgba(34,211,238,0.5)]
-        "
-      />
-    </div>
-  </motion.div>
-
-  {/* Name */}
-  <motion.h1
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    transition={{ delay: 0.3 }}
-    className="
-      text-white
-      font-bold
-      text-5xl
-      md:text-8xl
-    "
-  >
-    ARAVINDAN Y
-  </motion.h1>
-
-  {/* Tech Stack */}
-  <motion.div
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    transition={{ delay: 1.5 }}
-    className="
-      mt-6
-      inline-flex
-      flex-wrap
-      gap-3
-      justify-center
-      px-6
-      py-4
-      rounded-2xl
-      bg-white/5
-      backdrop-blur-lg
-      border
-      border-white/10
-    "
-  >
-    <span>React</span>
-    <span>•</span>
-    <span>Flask</span>
-    <span>•</span>
-    <span>MERN</span>
-    <span>•</span>
-    <span>REST APIs</span>
-  </motion.div>
-
-  {/* Typing Animation */}
-  <motion.div
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    transition={{ delay: 1 }}
-    className="mt-8 text-xl md:text-3xl text-slate-300 h-[50px]"
-  >
-    <TypeAnimation
-      sequence={[
-        "Full Stack Developer",
-        2000,
-        "Building Digital Solutions",
-        2000,
-        "Creating Modern Applications",
-        2000,
-        "Transforming Ideas Into Products",
-        2000,
-      ]}
-      wrapper="span"
-      repeat={Infinity}
-    />
-  </motion.div>
-
-  {/* Button */}
-  <MagneticButton>
-  Explore Universe →
-</MagneticButton>
-
-</div>
-
-      {/* Scroll Indicator */}
-      <motion.div
-        animate={{
-          y: [0, 12, 0],
-        }}
-        transition={{
-          repeat: Infinity,
-          duration: 2,
-        }}
-        className="
-          absolute
-          bottom-8
-          text-white
-          text-3xl
-        "
-      >
-        ↓
-      </motion.div>
+    <section ref={heroRef} id="hero" className="hero-section" aria-labelledby="hero-title">
+      <div className="hero-sky" aria-hidden="true" />
+      <div className="nebula-glow nebula-glow-cyan" data-parallax="12" aria-hidden="true" />
+      <div className="nebula-glow nebula-glow-violet" data-parallax="-18" aria-hidden="true" />
+      <div className="hero-particles" data-parallax="7" aria-hidden="true">{reduceMotion ? <div className="starfield-grid" /> : <ParticlesBackground />}</div>
+      <div className="hero-orbit hero-orbit-one" data-parallax="-10" aria-hidden="true" />
+      <div className="hero-orbit hero-orbit-two" data-parallax="14" aria-hidden="true" />
+      <div className="hero-inner">
+        <div className="hero-copy">
+          <p className="eyebrow hero-eyebrow"><span className="status-dot" /> Digital Universe / Portfolio</p>
+          <h1 id="hero-title" aria-label="Aravindan Y">
+            <span className="hero-title-line" aria-hidden="true">
+              {titleWords.map((word) => (
+                <span className="hero-title-word" key={word}>
+                  {Array.from(word).map((character, index) => <span className="hero-title-char" key={`${word}-${index}`}>{character}</span>)}
+                </span>
+              ))}
+            </span>
+          </h1>
+          <p className="hero-role">Aspiring Full Stack Developer</p>
+          <p className="hero-summary">{careerObjective}</p>
+          <div className="hero-actions">
+            <a className="button button-primary" href="#projects">Explore projects <span aria-hidden="true">↗</span></a>
+            <a className="button button-quiet" href={`${import.meta.env.BASE_URL}Aravindan_Resume_Updated.pdf`} download>Download résumé <span aria-hidden="true">↓</span></a>
+          </div>
+          <nav className="hero-socials" aria-label="Professional links">
+            <a className="hero-social-link" href="https://github.com/AravindanR-git" target="_blank" rel="noreferrer">GitHub <span aria-hidden="true">↗</span></a>
+            <a className="hero-social-link" href="https://www.linkedin.com/in/aravindan-y-developer/" target="_blank" rel="noreferrer">LinkedIn <span aria-hidden="true">↗</span></a>
+            <a className="hero-social-link" href="mailto:aravindan017@gmail.com">Email <span aria-hidden="true">↗</span></a>
+          </nav>
+        </div>
+        <div className="hero-portrait-wrap" data-parallax="-8">
+          <div className="portrait-halo" aria-hidden="true" />
+          <div className="portrait-frame"><img src={portrait} alt="Aravindan Y in a navy suit" fetchPriority="high" /></div>
+          <span className="portrait-label"><span className="status-dot" /> Full Stack Development · 2024–2025</span>
+        </div>
+      </div>
+      <a className="scroll-cue" href="#about" aria-label="Scroll to About"><span aria-hidden="true" /> Scroll to explore</a>
     </section>
   );
 }

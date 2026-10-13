@@ -1,104 +1,42 @@
 import { motion } from "framer-motion";
 
-function ParticlesBackground() {
-  const particles = Array.from({ length: 40 }, () => ({
-    left: Math.random() * 100,
-    top: Math.random() * 100,
-    size: Math.random() * 4 + 2,
-    opacity: Math.random() * 0.5 + 0.2,
-    duration: 4 + Math.random() * 6,
-  }));
+const particles = Array.from({ length: 48 }, (_, index) => {
+  const depth = index % 3;
+  return {
+    id: index,
+    depth,
+    left: (index * 37 + depth * 11) % 100,
+    top: (index * 61 + depth * 17) % 100,
+    size: [2, 3, 4][depth] + (index % 4 === 0 ? 1 : 0),
+    opacity: [0.24, 0.42, 0.68][depth],
+    duration: [10, 7, 5][depth] + (index % 5) * 0.6,
+    drift: [8, 16, 24][depth] * (index % 2 === 0 ? 1 : -1),
+    delay: -(index % 12) * 0.4,
+  };
+});
 
+function ParticlesBackground() {
   return (
     <>
-      {/* Constellation Lines */}
-
-      <motion.div
-  className="
-    absolute
-    top-[25%]
-    left-[20%]
-    w-[250px]
-    h-[1px]
-    bg-cyan-400/20
-    rotate-12
-  "
-  animate={{
-    opacity: [0.05, 0.3, 0.05],
-  }}
-  transition={{
-    duration: 6,
-    repeat: Infinity,
-    ease: "easeInOut",
-  }}
-/>
-
-<motion.div
-  className="
-    absolute
-    top-[40%]
-    right-[15%]
-    w-[200px]
-    h-[1px]
-    bg-cyan-400/20
-    -rotate-12
-  "
-  animate={{
-    opacity: [0.05, 0.25, 0.05],
-  }}
-  transition={{
-    duration: 8,
-    repeat: Infinity,
-    ease: "easeInOut",
-  }}
-/>
-
-<motion.div
-  className="
-    absolute
-    bottom-[30%]
-    left-[30%]
-    w-[180px]
-    h-[1px]
-    bg-cyan-400/20
-  "
-  animate={{
-    opacity: [0.05, 0.35, 0.05],
-  }}
-  transition={{
-    duration: 7,
-    repeat: Infinity,
-    ease: "easeInOut",
-  }}
-/>
-
-      {/* Floating Particles */}
-
-      {particles.map((particle, index) => (
-        <motion.div
-          key={index}
-          className="
-            absolute
-            rounded-full
-            bg-cyan-400
-            shadow-[0_0_8px_rgba(34,211,238,0.8)]
-          "
+      <div className="starfield-grid" aria-hidden="true" />
+      <motion.span className="particle-orbit particle-orbit-a" aria-hidden="true" animate={{ rotate: 360 }} transition={{ duration: 84, repeat: Infinity, ease: "linear" }} />
+      <motion.span className="particle-orbit particle-orbit-b" aria-hidden="true" animate={{ rotate: -360 }} transition={{ duration: 112, repeat: Infinity, ease: "linear" }} />
+      <div className="constellation constellation-one" aria-hidden="true"><span /><span /><span /></div>
+      <div className="constellation constellation-two" aria-hidden="true"><span /><span /><span /></div>
+      {particles.map((particle) => (
+        <motion.span
+          key={particle.id}
+          className={`cosmic-particle depth-${particle.depth}`}
+          aria-hidden="true"
           style={{
-            width: particle.size,
-            height: particle.size,
             left: `${particle.left}%`,
             top: `${particle.top}%`,
+            width: `${particle.size}px`,
+            height: `${particle.size}px`,
             opacity: particle.opacity,
           }}
-          animate={{
-            y: [0, -30, 0],
-            opacity: [0.2, 0.8, 0.2],
-          }}
-          transition={{
-            duration: particle.duration,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
+          animate={{ y: [0, -particle.drift, 0], x: [0, particle.drift * 0.3, 0], opacity: [particle.opacity * 0.55, particle.opacity, particle.opacity * 0.55] }}
+          transition={{ duration: particle.duration, delay: particle.delay, repeat: Infinity, ease: "easeInOut" }}
         />
       ))}
     </>
